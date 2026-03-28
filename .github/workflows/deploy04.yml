@@ -1,0 +1,45 @@
+name: Flutter Web Deploy
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # 최신 v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: ./sungdo-lighting-voice-education # 폴더가 다르면 수정하세요
+
+      - name: Build Web
+        run: flutter build web --release --base-href "/sungdo-lighting-voice-education/"
+        working-directory: ./sungdo-lighting-voice-education
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3 # v2에서 v3로 필수 업데이트
+        with:
+          path: ./sungdo-lighting-voice-education/build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 # v2에서 v4로 필수 업데이트
