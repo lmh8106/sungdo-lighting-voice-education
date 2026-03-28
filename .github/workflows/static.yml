@@ -1,0 +1,43 @@
+name: Flutter Web Deploy
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          
+      # 1. 의존성 설치 (working-directory 추가)
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: ./sungdo-lighting-voice-education # <--- 실제 폴더명으로 수정
+
+      # 2. 웹 빌드 (working-directory 및 경로 수정)
+      - name: Build Web
+        run: flutter build web --release --base-href "/sungdo-lighting-voice-education/"
+        working-directory: ./sungdo-lighting-voice-education # <--- 실제 폴더명으로 수정
+
+      # 3. 결과물 업로드 (path 경로 수정)
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # 빌드 결과물이 생성된 실제 경로를 지정합니다.
+          path: ./sungdo-lighting-voice-education/build/web
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
